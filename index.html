@@ -95,6 +95,27 @@ html{overscroll-behavior:none}body{overscroll-behavior:none;-webkit-text-size-ad
 #rotateNotice button{font-size:17px;}
 @media(orientation:portrait) and (max-width:700px){#rotateNotice:not(.dismissed){display:flex}}
 @media(orientation:landscape) and (max-width:950px){.wrap{padding:3px 5px;gap:2px}.top{gap:3px}.top .brand{font-size:19px}.top .tag{display:none}.top button{padding:5px 7px;font-size:12px}.panel{padding:5px}#game>.top h2{font-size:14px}.boardhead{padding:3px 6px}.scene{min-height:0}.found-popup{max-height:78%}}
+
+/* Device-only compatibility patch: no gameplay, state, or HTML changes. */
+@supports (height: 100dvh) {
+  #app { height: 100dvh; }
+}
+@media (max-width: 900px) {
+  .wrap { padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); }
+  .top .row, #game .controls { flex-wrap: wrap; }
+  button, select { touch-action: manipulation; }
+  dialog { max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow-y: auto; }
+}
+@media (max-width: 900px) and (orientation: landscape) {
+  .wrap { padding-top: 4px; padding-bottom: 4px; }
+  .top { gap: 5px; }
+  .boards.teams { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .boardhead { min-width: 0; }
+  #game .controls { gap: 4px; }
+}
+@media (pointer: coarse) {
+  .resize-handle, .rotate-handle { min-width: 38px; min-height: 38px; }
+}
 </style></head><body>
 <div id="rotateNotice"><div style="font-size:56px">📱 ↻</div><div>Rotate your phone sideways to play Spot It, Detectives! in landscape.</div><button id="rotateContinue">Continue in Portrait</button></div><div id="app"><div class="wrap"><header class="top"><div><div class="tag">DETECTIVE SEARCH · CLASSROOM GAME</div><div class="brand">Spot It! <span class="free-tag">FREE</span></div></div><div class="row"><button class="secondary" id="fullBtn">Full Screen</button><a class="upgrade-link" href="https://spot-it.teacherkhen.com/" target="_blank" rel="noopener">★ Premium Version</a></div></header>
 <section class="panel hero" id="home"><h1>SPOT IT! <span class="free-tag">FREE</span></h1><p>Search the dark scene with your flashlight. Find every hidden clue, then review what you discovered! Create your own activities for free.</p><div class="controls" style="justify-content:center"><button id="settingsBtn">⚙ Go to Settings</button><button class="secondary" id="helpBtn">? How to Play</button></div></section>
