@@ -268,4 +268,147 @@ $('pasteImage').addEventListener('paste',async e=>{let items=[...(e.clipboardDat
  if(window.visualViewport)window.visualViewport.addEventListener('resize',resizeScenes,{passive:true});
  document.addEventListener('fullscreenchange',resizeScenes);attach();
 })();
-</script></body></html>
+</script>
+<!-- TeacherKhen Community Connector: Spot It! FREE -->
+<script>
+(() => {
+  'use strict';
+
+  // Only activate when opened from TeacherKhen Community.
+  // Normal game visits remain unchanged.
+  if (
+    location.hash !== '#tk-community' ||
+    !window.opener
+  ) return;
+
+  const allowedOrigins = new Set([
+    'https://teacherkhen.com',
+    'https://www.teacherkhen.com'
+  ]);
+
+  const protocol = {
+    ready: 'TK_SPOTITFREE_READY',
+    load: 'TK_SPOTITFREE_LESSON',
+    loaded: 'TK_SPOTITFREE_LOADED',
+    error: 'TK_SPOTITFREE_ERROR'
+  };
+
+  let loaded = false;
+  let attempts = 0;
+  let timer;
+
+  // Send messages securely to TeacherKhen Community.
+  function notify(type, extra = {}, targetOrigin) {
+    if (!window.opener || window.opener.closed) return;
+
+    const message = {
+      type,
+      ...extra
+    };
+
+    if (targetOrigin) {
+      window.opener.postMessage(
+        message,
+        targetOrigin
+      );
+    } else {
+      allowedOrigins.forEach(origin => {
+        window.opener.postMessage(message, origin);
+      });
+    }
+  }
+
+  // Inform Community that the game is ready.
+  function announceReady() {
+    if (
+      loaded ||
+      !window.opener ||
+      window.opener.closed ||
+      ++attempts > 90
+    ) {
+      clearInterval(timer);
+      return;
+    }
+
+    notify(protocol.ready);
+  }
+
+  // Receive the selected Community lesson.
+  window.addEventListener('message', event => {
+
+    if (
+      loaded ||
+      event.source !== window.opener ||
+      !allowedOrigins.has(event.origin)
+    ) return;
+
+    if (event.data?.type !== protocol.load) return;
+
+    try {
+      const incoming = event.data.lesson;
+
+      // Verify the Spot It! JSON structure.
+      if (
+        !incoming ||
+        typeof incoming !== 'object' ||
+        Array.isArray(incoming) ||
+        !Array.isArray(incoming.objects) ||
+        incoming.objects.length < 1 ||
+        incoming.objects.length > 80
+      ) {
+        throw new Error(
+          'Invalid Spot It! Free lesson JSON.'
+        );
+      }
+
+      // Use the game's existing JSON validator.
+      data = validate(incoming);
+
+      // Maintain the original background compatibility.
+      if (data.background === 'background.png') {
+        data.background = 'backgrounds/background.png';
+      }
+
+      // Preserve existing food preset corrections.
+      repairOldFoodPresetPositions();
+
+      // Refresh the game settings using the loaded activity.
+      renderList();
+
+      loaded = true;
+      clearInterval(timer);
+
+      // Confirm that the lesson was received.
+      notify(
+        protocol.loaded,
+        {},
+        event.origin
+      );
+
+      // Open the saved lesson automatically.
+      if ($('settingsDialog').open) {
+        $('settingsDialog').close();
+      }
+
+      begin();
+
+    } catch (error) {
+      notify(
+        protocol.error,
+        {
+          message:
+            error?.message || 'Cannot load lesson'
+        },
+        event.origin
+      );
+    }
+  });
+
+  // Start the handshake with TeacherKhen Community.
+  announceReady();
+
+  timer = setInterval(announceReady, 1000);
+
+})();
+</script>
+</body></html>
